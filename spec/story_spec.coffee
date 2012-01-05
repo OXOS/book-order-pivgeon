@@ -203,12 +203,40 @@ describe Story, ->
     it "returns the user name based on specified email", ->
       name = story.getUserNameFromXML(xml, 'jane@example.com')
       expect(name).toEqual('Jane Williams')
+  
+  describe "getProjectsIdsFromXML", ->
+    story = null
+    xml = '<?xml version="1.0" encoding="UTF-8"?>
+           <projects type="array">
+             <project>
+               <id>123321</id>
+               <name>test</name>
+               <iteration_length type="integer">2</iteration_length>
+               <week_start_day>Monday</week_start_day>
+               <point_scale>0,1,2,3</point_scale>
+               <velocity_scheme>Average of 4 iterations</velocity_scheme>
+               <current_velocity>10</current_velocity>
+               <initial_velocity>10</initial_velocity>
+               <number_of_done_iterations_to_show>12</number_of_done_iterations_to_show>
+               <labels>shields,transporter</labels>
+               <allow_attachments>true</allow_attachments>
+               <public>false</public>
+               <use_https>true</use_https>
+               <bugs_and_chores_are_estimatable>false</bugs_and_chores_are_estimatable>
+               <commit_mode>false</commit_mode>
+               <last_activity_at type="datetime">2010/01/16 17:39:10 CST</last_activity_at>'
+
+    beforeEach ->
+      story = new Story()
+    
+    it "returns array of project names and ids", ->
+      ids = story.getProjectsIdsFromXML(xml)
+      expect(ids).toEqual({'test': '123321'})
 
   describe "save", ->
     story = null
     beforeEach ->
       story = new Story
-        projectId: '123'
         token:     'abc'
         from:      'John Doe <john.doe@foo.com>'
         to:        'John Doe <john.doe@foo.com>'
@@ -224,6 +252,8 @@ describe Story, ->
         writeSpy = jasmine.createSpy('write')
         endSpy   = jasmine.createSpy('end')
         spyOn(https, 'request').andReturn({on: onSpy, write: writeSpy, end: endSpy})
+        spyOn(story, 'getProjectIdByName').andCallFake (projName, cb) ->
+          cb('1212123')
         spyOn(story, 'getUserNamesFromEmails').andCallFake (fromEmail,ccEmail, cb) ->
           cb('John Doe','John Doe')
         story.save()
@@ -232,7 +262,7 @@ describe Story, ->
         params = https.request.mostRecentCall.args[0]
         expect(https.request).toHaveBeenCalled()
         params = https.request.mostRecentCall.args[0]
-        expect(params.path).toEqual('/services/v3/projects/123/stories')
+        expect(params.path).toEqual('/services/v3/projects/1212123/stories')
         expect(params.headers['X-TrackerToken']).toEqual('abc')
         expect(onSpy).toHaveBeenCalled()
         expect(onSpy.mostRecentCall.args[0]).toEqual('error')

@@ -124,7 +124,7 @@ var Story = module.exports = Backbone.Model.extend({
     req.on('error', _.bind(this.trigger, this, 'error'));
     req.end();
   },
-
+  
   getUsersFromXML: function(xml) {
     var re = /<email>([^<]+)<\/email>\s*<name>([^<]+)<\/name>/mg;
     var match;
@@ -137,29 +137,76 @@ var Story = module.exports = Backbone.Model.extend({
 
   getUserNameFromXML: function(xml, email) {
     return this.getUsersFromXML(xml)[email];
-  },    
+  },
+  
+  getProjectIdByName: function(name, cb) {
+    var req = https.request({
+      host:    'www.pivotaltracker.com',
+      port:    443,
+      method:  'GET',
+      path:    '/services/v3/projects/',
+      headers: {'X-TrackerToken': this.get('token')}
+    }, _.bind(function(res) {
+      res.setEncoding('utf8');
+      var body = '';
 
-  save: function() {
-    this.getUserNamesFromEmails(this.fromAddress(), this.toAddress(), _.bind(function(fromName,toName) {
-      this.set({fromName: fromName, toName: toName});
-      var storyXml = this.toXml();
-      
-      var req = https.request({
-        host:   'www.pivotaltracker.com',
-        port:   443,
-        method: 'POST',
-        path:   '/services/v3/projects/' + this.get('projectId') + '/stories',
-        headers: {
-          'X-TrackerToken': this.get('token'),
-          'Content-Type':   'application/xml',
-          'Content-Length': storyXml.length
+      res.on('data', function(chunk) {
+        body += chunk;
+      });
+
+      res.on('end', _.bind(function() {
+        if(body.match(/<projects/)) {          
+          var projectid = this.getProjectsIdsFromXML(body)[name];
+          cb(projectid);
+        } else {
+          console.log(body);
+          this.trigger('error', body);
         }
-      }, this.saveCallback);
-      
-      req.on('error', _.bind(this.trigger, this, 'error'));
+      }, this));
+    }, this));
+    req.on('error', _.bind(this.trigger, this, 'error'));
+    req.end();
+  },
 
-      req.write(storyXml);
-      req.end();
+  getProjectsIdsFromXML: function(xml) {
+    var re = /<id>([^<]+)<\/id>\s*<name>([^<]+)<\/name>/mg;
+    var match;
+    var names = {};
+    while(match = re.exec(xml)) {
+      names[match[2].toLowerCase()] = match[1];
+    }
+    return names;
+  },
+  
+  projectName: function() {
+    return this.ccAddress().split('@')[0];
+  },
+
+  save: function() {    
+    this.getProjectIdByName(this.projectName(), _.bind(function(projectId) {      
+      this.set({projectId: projectId});
+      
+      this.getUserNamesFromEmails(this.fromAddress(), this.toAddress(), _.bind(function(fromName,toName) {
+        this.set({fromName: fromName, toName: toName});
+        var storyXml = this.toXml();
+
+        var req = https.request({
+          host:   'www.pivotaltracker.com',
+          port:   443,
+          method: 'POST',
+          path:   '/services/v3/projects/' + this.get('projectId') + '/stories',
+          headers: {
+            'X-TrackerToken': this.get('token'),
+            'Content-Type':   'application/xml',
+            'Content-Length': storyXml.length
+          }
+        }, this.saveCallback);
+
+        req.on('error', _.bind(this.trigger, this, 'error'));
+
+        req.write(storyXml);
+        req.end();
+      }, this));
     }, this));
   },
 

@@ -19,7 +19,7 @@ app.get('/', function(request, response) {
   response.send('<html><head><title>Book Order</title></head><body>' + README + '</body></html>');
 });
 
-app.post('/:gateway/projects/:project/stories/new/:token', function(request, response) {
+app.post('/:gateway/stories/new/:token', function(request, response) {
   try {
     var attachments = [];
     
@@ -35,7 +35,6 @@ app.post('/:gateway/projects/:project/stories/new/:token', function(request, res
     }
         
     var story = new Story({
-      projectId:   request.params.project,
       token:       request.params.token,
       from:        request.body.from,
       to:          request.body.to,
