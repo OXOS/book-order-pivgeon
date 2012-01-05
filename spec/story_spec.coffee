@@ -111,6 +111,12 @@ describe Story, ->
         from: 'John Doe <john.doe@foo.com>'
       expect(story.fromAddress()).toEqual 'john.doe@foo.com'
 
+  describe "toAddress", ->
+    it "returns the name without the email address", ->
+      story = new Story
+        to: 'John Doe <john.doe@foo.com>'
+      expect(story.toAddress()).toEqual 'john.doe@foo.com'
+
   describe "ccAddress", ->
     it "returns the name without the email address", ->
       story = new Story
@@ -128,7 +134,7 @@ describe Story, ->
         projectId: '123'
         token:     'abc'
         fromName:  'John Doe'
-        ccName:  'John Doe'
+        toName:  'John Doe'
         subject:   'Test'
         body:      'test body'
 
@@ -205,7 +211,8 @@ describe Story, ->
         projectId: '123'
         token:     'abc'
         from:      'John Doe <john.doe@foo.com>'
-        cc:        'John Doe <john.doe@foo.com>'
+        to:        'John Doe <john.doe@foo.com>'
+        cc:        'Pivgeon <test@pivgeon.com>'
         subject:   'Test'
         body:      'test body'
 
