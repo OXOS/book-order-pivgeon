@@ -22,7 +22,8 @@ var Story = module.exports = Backbone.Model.extend({
   // from
   // fromName - set automatically from api
   // cc
-  // ccName - set automatically from api
+  // to
+  // toName - set automatically from api
   // subject
   // name
   // body
@@ -67,6 +68,15 @@ var Story = module.exports = Backbone.Model.extend({
     return new String(this.get('from')).match(/<([^>]+)>/)[1];
   },
   
+  toAddress: function() {
+    if (!this.get('to')) 
+      return null;
+    if (this.get('to').match(/.*?<.+?>/))
+      return new String(this.get('to')).match(/<([^>]+)>/)[1];
+    else
+      return new String(this.get('to'));    
+  },
+  
   ccAddress: function() {
     if (!this.get('cc')) 
       return null;
@@ -80,12 +90,12 @@ var Story = module.exports = Backbone.Model.extend({
     return '<story><name>'  + escapeHTML(this.get('name'))              + '</name>' +
            '<story_type>'   + escapeHTML(this.get('type'))              + '</story_type>' +
            '<requested_by>' + escapeHTML(this.get('fromName'))          + '</requested_by>' +
-           '<owned_by>'     + escapeHTML(this.get('ccName'))            + '</owned_by>' +
+           '<owned_by>'     + escapeHTML(this.get('toName'))            + '</owned_by>' +
            '<labels>'       + escapeHTML(this.get('labels').join(', ')) + '</labels>' +
            '<description>'  + escapeHTML(this.get('body'))              + '</description></story>';
   },
 
-  getUserNamesFromEmails: function(fromEmail,ccEmail, cb) {
+  getUserNamesFromEmails: function(fromEmail,toEmail, cb) {
     var req = https.request({
       host:    'www.pivotaltracker.com',
       port:    443,
@@ -103,8 +113,8 @@ var Story = module.exports = Backbone.Model.extend({
       res.on('end', _.bind(function() {
         if(body.match(/<memberships/)) {
           var fromName = this.getUserNameFromXML(body, fromEmail) || '',
-              ccName   = this.getUserNameFromXML(body, ccEmail) || '';
-          cb(fromName,ccName);
+              toName   = this.getUserNameFromXML(body, toEmail) || '';
+          cb(fromName,toName);
         } else {
           console.log(body);
           this.trigger('error', body);
@@ -130,8 +140,8 @@ var Story = module.exports = Backbone.Model.extend({
   },    
 
   save: function() {
-    this.getUserNamesFromEmails(this.fromAddress(), this.ccAddress(), _.bind(function(fromName,ccName) {
-      this.set({fromName: fromName, ccName: ccName});
+    this.getUserNamesFromEmails(this.fromAddress(), this.toAddress(), _.bind(function(fromName,toName) {
+      this.set({fromName: fromName, toName: toName});
       var storyXml = this.toXml();
       
       var req = https.request({
@@ -225,3 +235,4 @@ var Story = module.exports = Backbone.Model.extend({
     attachment.save();
   }
 });
+
