@@ -156,7 +156,7 @@ var Story = module.exports = Backbone.Model.extend({
 
       res.on('end', _.bind(function() {
         if(body.match(/<projects/)) {          
-          var projectid = this.getProjectsIdsFromXML(body)[name];
+          var projectid = this.getProjectsIdsFromXML(body)[this.normalizeString(name)];
           cb(projectid);
         } else {
           console.log(body);
@@ -173,9 +173,13 @@ var Story = module.exports = Backbone.Model.extend({
     var match;
     var names = {};
     while(match = re.exec(xml)) {
-      names[match[2].toLowerCase()] = match[1];
+      names[this.normalizeString(match[2])] = match[1];
     }
     return names;
+  },
+  
+  normalizeString: function(str) {
+    return str.toLowerCase().replace(/[\t\s]/g,'');
   },
   
   projectName: function() {

@@ -233,6 +233,12 @@ describe Story, ->
       ids = story.getProjectsIdsFromXML(xml)
       expect(ids).toEqual({'test': '123321'})
 
+  describe "normalizeString", ->
+    it "returns lowercase string without spaces", ->
+      story = new Story()
+      expect(story.normalizeString('AbcD eFG hiJKLMn')).toEqual('abcdefghijklmn')
+      
+
   describe "save", ->
     story = null
     beforeEach ->
