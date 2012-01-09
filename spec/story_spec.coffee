@@ -275,6 +275,15 @@ describe Story, ->
         expect(writeSpy).toHaveBeenCalledWith(story.toXml())
         expect(endSpy).toHaveBeenCalled()
 
+    it "sends notification to sender when project does not exist", ->
+      spyOn(story,'getProjectIdByName').andCallFake (name,cb) ->
+        cb(null);
+      story.bind 'uncreated', (e) ->        
+        expect(e).toMatch(/The project 'test' does not exist/)
+      story.bind 'error', (e) ->
+        expect(e).toMatch(/The project does not exist/)
+      story.save()
+
   describe "handlePivotalError", ->
     story = null
     beforeEach ->

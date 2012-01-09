@@ -187,9 +187,14 @@ var Story = module.exports = Backbone.Model.extend({
   },
 
   save: function() {    
-    this.getProjectIdByName(this.projectName(), _.bind(function(projectId) {      
-      this.set({projectId: projectId});
-      
+    this.getProjectIdByName(this.projectName(), _.bind(function(projectId) {
+      if(projectId){
+        this.set({projectId: projectId});        
+      }else{
+        this.trigger('uncreated','Unfortunately, we could not create the story for you due to following errors:\n\n- The project \'' + this.projectName() + '\' does not exist.');    
+        this.trigger('error','The project does not exist.');
+        return false;
+      }
       this.getUserNamesFromEmails(this.fromAddress(), this.toAddress(), _.bind(function(fromName,toName) {
         this.set({fromName: fromName, toName: toName});
         var storyXml = this.toXml();
