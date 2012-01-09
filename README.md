@@ -2,17 +2,12 @@
 
 *Email to Pivotal Tracker Gateway*
 
-This project accepts email
-
-* posted by [SendGrid](http://sendgrid.com)
-* routed via [Mailgun](http://mailgun.org)
-
-and creates a new Story in Pivotal Tracker via the API.
+This project accepts email posted by [SendGrid](http://sendgrid.com) and creates a new Story in Pivotal Tracker via the API.
 
 ## Features
 
 * Creates new stories in Pivotal Tracker with subject as the title and the email body as the story description.
-* Support for creating story assigned to other project members.
+* Support for creating story assigned to other project members (just 'cc' the email to other project member).
 * You can put labels in the subject line in this format: `[foo] [bar]`
 * If the subject contains the word "bug" (case insensitive), then the story type will be Bug (otherwise, it's a Feature).
 * Support for attachments.
@@ -25,16 +20,14 @@ and creates a new Story in Pivotal Tracker via the API.
 
 ## Configuration
 
-For SendGrid you need to configure hostname and url address on the [Parse API settings page](http://sendgrid.com/developer/reply).
+You need to configure hostname and url address on the [Parse API settings page](http://sendgrid.com/developer/reply).
 
-For MailGun you need to create a new Route.
 
 This is destination url you need to use:
 
-    http://APPURL/EMAIL_GATEWAY/projects/PROJECTID/stories/new/TOKEN
+    http://APPURL/sendgrid/projects/PROJECTID/stories/new/TOKEN
 
-* Replace EMAIL_GATEWAY with one of these possible values: sendgrid, mailgun.
-* Replace APPURL with the url of your ap on Heroku or elsewhere.
+* Replace APPURL with the url of your app on Heroku or elsewhere.
 * Replace PROJECTID with the numeric project id from Pivotal Tracker (the id number in the URL when viewing the project).
 * Replace TOKEN with your user API token from Pivotal Tracker.
 
